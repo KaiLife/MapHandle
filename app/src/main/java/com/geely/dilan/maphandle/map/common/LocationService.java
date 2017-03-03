@@ -2,13 +2,9 @@ package com.geely.dilan.maphandle.map.common;
 
 import android.content.Context;
 
-import com.amap.api.location.AMapLocation;
-import com.amap.api.location.AMapLocationClientOption;
-import com.amap.api.location.AMapLocationListener;
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClientOption;
-import com.geely.dilan.maphandle.BuildConfig;
 import com.geely.dilan.maphandle.map.baidu.BaiduLocationService;
 import com.geely.dilan.maphandle.map.bean.MapLocation;
 import com.geely.dilan.maphandle.map.gaode.GaodeLocationService;
@@ -19,24 +15,27 @@ import com.geely.dilan.maphandle.map.gaode.GaodeLocationService;
 
 public class LocationService {
 
-    private MapType mapType = BuildConfig.MAP_TYPE;
     private BaiduLocationService baiduLocationService;
     private GaodeLocationService gaodeLocationService;
     private Object option;
     private MapLocationListener locationListener;
+
+    //#if MAP_TYPE == 1
     private BDLocationListener bdLocationListener;
-    private AMapLocationListener aMapLocationListener;
+    //#endif
+
+    //#if MAP_TYPE == 0
+//@    private AMapLocationListener aMapLocationListener;
+    //#endif
 
     public LocationService(Context context) {
-        switch (mapType) {
-            case Baidu:
-                baiduLocationService = new BaiduLocationService(context);
-                break;
+        //#if MAP_TYPE == 1
+        baiduLocationService = new BaiduLocationService(context);
+        //#endif
 
-            default:
-                gaodeLocationService = new GaodeLocationService(context);
-                break;
-        }
+        //#if MAP_TYPE == 0
+//@        gaodeLocationService = new GaodeLocationService(context);
+        //#endif
     }
 
     public void registerListener(MapLocationListener listener) {
@@ -45,81 +44,75 @@ public class LocationService {
         }
         this.locationListener = listener;
         final MapLocation location = new MapLocation();
-        switch (mapType) {
-            case Baidu:
-                bdLocationListener = new BDLocationListener() {
-                    @Override
-                    public void onReceiveLocation(BDLocation bdLocation) {
-                        if (null != bdLocation && bdLocation.getLocType() != BDLocation.TypeServerError) {
-                            location.setLatitude(bdLocation.getLatitude());
-                            location.setLongitude(bdLocation.getLongitude());
-                            location.setAddress(bdLocation.getAddrStr());
-                            locationListener.onLocationChanged(location);
-                        }
-                    }
 
-                    @Override
-                    public void onConnectHotSpotMessage(String s, int i) {
+        //#if MAP_TYPE == 1
+        bdLocationListener = new BDLocationListener() {
+            @Override
+            public void onReceiveLocation(BDLocation bdLocation) {
+                if (null != bdLocation && bdLocation.getLocType() != BDLocation.TypeServerError) {
+                    location.setLatitude(bdLocation.getLatitude());
+                    location.setLongitude(bdLocation.getLongitude());
+                    location.setAddress(bdLocation.getAddrStr());
+                    locationListener.onLocationChanged(location);
+                }
+            }
 
-                    }
-                };
-                baiduLocationService.registerListener(bdLocationListener);
-                break;
+            @Override
+            public void onConnectHotSpotMessage(String s, int i) {
 
-            default:
-                aMapLocationListener = new AMapLocationListener() {
-                    @Override
-                    public void onLocationChanged(AMapLocation aMapLocation) {
-                        if (aMapLocation != null) {
-                            location.setLatitude(aMapLocation.getLatitude());
-                            location.setLongitude(aMapLocation.getLongitude());
-                            location.setAddress(aMapLocation.getAddress());
-                            locationListener.onLocationChanged(location);
-                        }
-                    }
-                };
-                gaodeLocationService.registerListener(aMapLocationListener);
-                break;
-        }
+            }
+        };
+        baiduLocationService.registerListener(bdLocationListener);
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        aMapLocationListener = new AMapLocationListener() {
+//@            @Override
+//@            public void onLocationChanged(AMapLocation aMapLocation) {
+//@                if (aMapLocation != null) {
+//@                    location.setLatitude(aMapLocation.getLatitude());
+//@                    location.setLongitude(aMapLocation.getLongitude());
+//@                    location.setAddress(aMapLocation.getAddress());
+//@                    locationListener.onLocationChanged(location);
+//@                }
+//@            }
+//@        };
+//@        gaodeLocationService.registerListener(aMapLocationListener);
+        //#endif
     }
 
     public void unregisterListener() {
         locationListener = null;
-        switch (mapType) {
-            case Baidu:
-                baiduLocationService.unregisterListener(bdLocationListener);
-                bdLocationListener = null;
-                break;
 
-            default:
-                gaodeLocationService.unregisterListener();
-                aMapLocationListener = null;
-                break;
-        }
+        //#if MAP_TYPE == 1
+        baiduLocationService.unregisterListener(bdLocationListener);
+        bdLocationListener = null;
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        gaodeLocationService.unregisterListener();
+//@        aMapLocationListener = null;
+        //#endif
     }
 
     public void start() {
-        switch (mapType) {
-            case Baidu:
-                baiduLocationService.start();
-                break;
+        //#if MAP_TYPE == 1
+        baiduLocationService.start();
+        //#endif
 
-            default:
-                gaodeLocationService.start();
-                break;
-        }
+        //#if MAP_TYPE == 0
+//@        gaodeLocationService.start();
+        //#endif
     }
 
     public void stop() {
-        switch (mapType) {
-            case Baidu:
-                baiduLocationService.stop();
-                break;
+        //#if MAP_TYPE == 1
+        baiduLocationService.stop();
+        //#endif
 
-            default:
-                gaodeLocationService.stop();
-                break;
-        }
+        //#if MAP_TYPE == 0
+//@        gaodeLocationService.stop();
+        //#endif
     }
 
     public void setLocationOption(Object option) {
@@ -127,19 +120,18 @@ public class LocationService {
             return;
         }
         this.option = option;
-        switch (mapType) {
-            case Baidu:
-                if (option instanceof LocationClientOption) {
-                    baiduLocationService.setLocationOption((LocationClientOption) option);
-                }
-                break;
 
-            default:
-                if (option instanceof AMapLocationClientOption) {
-                    gaodeLocationService.setLocationOption((AMapLocationClientOption) option);
-                }
-                break;
+        //#if MAP_TYPE == 1
+        if (option instanceof LocationClientOption) {
+            baiduLocationService.setLocationOption((LocationClientOption) option);
         }
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        if (option instanceof AMapLocationClientOption) {
+//@            gaodeLocationService.setLocationOption((AMapLocationClientOption) option);
+//@        }
+        //#endif
     }
 
 //    public Object getOption() {
@@ -147,25 +139,23 @@ public class LocationService {
 //    }
 
     public Object getDefaultLocationClientOption() {
-        switch (mapType) {
-            case Baidu:
-                return baiduLocationService.getDefaultLocationClientOption();
+        //#if MAP_TYPE == 1
+        return baiduLocationService.getDefaultLocationClientOption();
+        //#endif
 
-            default:
-                return gaodeLocationService.getDefaultLocationClientOption();
-        }
+        //#if MAP_TYPE == 0
+//@        return gaodeLocationService.getDefaultLocationClientOption();
+        //#endif
     }
 
     public void destroyLocation() {
-        switch (mapType) {
-            case Baidu:
-                baiduLocationService.destroyLocation();
-                break;
+        //#if MAP_TYPE == 1
+        baiduLocationService.destroyLocation();
+        //#endif
 
-            default:
-                gaodeLocationService.destroyLocation();
-                break;
-        }
+        //#if MAP_TYPE == 0
+//@        gaodeLocationService.destroyLocation();
+        //#endif
     }
 
     public interface MapLocationListener {

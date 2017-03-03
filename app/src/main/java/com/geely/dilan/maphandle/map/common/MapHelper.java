@@ -4,11 +4,9 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
-import com.amap.api.maps.AMap;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.MapPoi;
-import com.geely.dilan.maphandle.BuildConfig;
 import com.geely.dilan.maphandle.map.baidu.BaiduMapHelper;
 import com.geely.dilan.maphandle.map.bean.LatLng;
 import com.geely.dilan.maphandle.map.gaode.GaodeMapHelper;
@@ -18,7 +16,6 @@ import com.geely.dilan.maphandle.map.gaode.GaodeMapHelper;
  */
 public class MapHelper {
 
-    private MapType mapType = BuildConfig.MAP_TYPE;
     private BaiduMapHelper baiduMapHelper;
     private GaodeMapHelper gaodeMapHelper;
     private Object map;
@@ -33,32 +30,25 @@ public class MapHelper {
      * @param context
      */
     public static void init(Context context) {
-        switch (BuildConfig.MAP_TYPE) {
-            case Baidu:
-                SDKInitializer.initialize(context);
-                break;
-
-            default:
-                break;
-        }
+        //#if MAP_TYPE == 1
+        SDKInitializer.initialize(context);
+        //#endif
     }
 
     public MapHelper(@NonNull Object mapView) {
-        switch (mapType) {
-            case Baidu:
-                if (mapView instanceof com.baidu.mapapi.map.MapView) {
-                    baiduMapHelper = new BaiduMapHelper((com.baidu.mapapi.map.MapView) mapView);
-                    map = baiduMapHelper.getBaiduMap();
-                }
-                break;
-
-            default:
-                if (mapView instanceof com.amap.api.maps.MapView) {
-                    gaodeMapHelper = new GaodeMapHelper((com.amap.api.maps.MapView) mapView);
-                    map = gaodeMapHelper.getAMap();
-                }
-                break;
+        //#if MAP_TYPE == 1
+        if (mapView instanceof com.baidu.mapapi.map.MapView) {
+            baiduMapHelper = new BaiduMapHelper((com.baidu.mapapi.map.MapView) mapView);
+            map = baiduMapHelper.getBaiduMap();
         }
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        if (mapView instanceof com.amap.api.maps.MapView) {
+//@            gaodeMapHelper = new GaodeMapHelper((com.amap.api.maps.MapView) mapView);
+//@            map = gaodeMapHelper.getAMap();
+//@        }
+        //#endif
     }
 
     public Object getMap() {
@@ -66,77 +56,61 @@ public class MapHelper {
     }
 
     public void onCreate(Bundle savedInstanceState) {
-        switch (mapType) {
-            case Baidu:
-                break;
-
-            default:
-                if (gaodeMapHelper != null) {
-                    gaodeMapHelper.onCreate(savedInstanceState);
-                }
-                break;
-        }
+        //#if MAP_TYPE == 0
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.onCreate(savedInstanceState);
+//@        }
+        //#endif
     }
 
     public void onResume() {
-        switch (mapType) {
-            case Baidu:
-                if (baiduMapHelper != null) {
-                    baiduMapHelper.onResume();
-                }
-                break;
-
-            default:
-                if (gaodeMapHelper != null) {
-                    gaodeMapHelper.onResume();
-                }
-                break;
+        //#if MAP_TYPE == 1
+        if (baiduMapHelper != null) {
+            baiduMapHelper.onResume();
         }
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.onResume();
+//@        }
+        //#endif
     }
 
     public void onPause() {
-        switch (mapType) {
-            case Baidu:
-                if (baiduMapHelper != null) {
-                    baiduMapHelper.onPause();
-                }
-                break;
-
-            default:
-                if (gaodeMapHelper != null) {
-                    gaodeMapHelper.onPause();
-                }
-                break;
+        //#if MAP_TYPE == 1
+        if (baiduMapHelper != null) {
+            baiduMapHelper.onPause();
         }
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.onPause();
+//@        }
+        //#endif
     }
 
     public void onSaveInstanceState(Bundle outState) {
-        switch (mapType) {
-            case Baidu:
-                break;
-
-            default:
-                if (gaodeMapHelper != null) {
-                    gaodeMapHelper.onSaveInstanceState(outState);
-                }
-                break;
-        }
+        //#if MAP_TYPE == 0
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.onSaveInstanceState(outState);
+//@        }
+        //#endif
     }
 
     public void onDestroy() {
-        switch (mapType) {
-            case Baidu:
-                if (baiduMapHelper != null) {
-                    baiduMapHelper.onDestroy();
-                }
-                break;
-
-            default:
-                if (gaodeMapHelper != null) {
-                    gaodeMapHelper.onDestroy();
-                }
-                break;
+        //#if MAP_TYPE == 1
+        if (baiduMapHelper != null) {
+            baiduMapHelper.onDestroy();
         }
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.onDestroy();
+//@        }
+        //#endif
     }
 
     public void setMapLoadedListener(MapLoadedListener listener) {
@@ -144,25 +118,24 @@ public class MapHelper {
             return;
         }
         this.mapLoadedListener = listener;
-        switch (mapType) {
-            case Baidu:
-                ((BaiduMap) map).setOnMapLoadedCallback(new BaiduMap.OnMapLoadedCallback() {
-                    @Override
-                    public void onMapLoaded() {
-                        mapLoadedListener.onMapLoaded();
-                    }
-                });
-                break;
 
-            default:
-                ((AMap) map).setOnMapLoadedListener(new AMap.OnMapLoadedListener() {
-                    @Override
-                    public void onMapLoaded() {
-                        mapLoadedListener.onMapLoaded();
-                    }
-                });
-                break;
-        }
+        //#if MAP_TYPE == 1
+        ((BaiduMap) map).setOnMapLoadedCallback(new BaiduMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                mapLoadedListener.onMapLoaded();
+            }
+        });
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        ((AMap) map).setOnMapLoadedListener(new AMap.OnMapLoadedListener() {
+//@            @Override
+//@            public void onMapLoaded() {
+//@                mapLoadedListener.onMapLoaded();
+//@            }
+//@        });
+        //#endif
     }
 
     public void setMapClickListener(MapClickListener listener) {
@@ -171,38 +144,37 @@ public class MapHelper {
         }
         this.mapClickListener = listener;
         final LatLng point = new LatLng();
-        switch (mapType) {
-            case Baidu:
-                ((BaiduMap) map).setOnMapClickListener(new BaiduMap.OnMapClickListener() {
-                    @Override
-                    public void onMapClick(com.baidu.mapapi.model.LatLng latLng) {
-                        if (latLng != null) {
-                            point.setLatitude(latLng.latitude);
-                            point.setLongitude(latLng.longitude);
-                            mapClickListener.onMapClick(point);
-                        }
-                    }
 
-                    @Override
-                    public boolean onMapPoiClick(MapPoi mapPoi) {
-                        return false;
-                    }
-                });
-                break;
+        //#if MAP_TYPE == 1
+        ((BaiduMap) map).setOnMapClickListener(new BaiduMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(com.baidu.mapapi.model.LatLng latLng) {
+                if (latLng != null) {
+                    point.setLatitude(latLng.latitude);
+                    point.setLongitude(latLng.longitude);
+                    mapClickListener.onMapClick(point);
+                }
+            }
 
-            default:
-                ((AMap) map).setOnMapClickListener(new AMap.OnMapClickListener() {
-                    @Override
-                    public void onMapClick(com.amap.api.maps.model.LatLng latLng) {
-                        if (latLng != null) {
-                            point.setLatitude(latLng.latitude);
-                            point.setLongitude(latLng.longitude);
-                            mapClickListener.onMapClick(point);
-                        }
-                    }
-                });
-                break;
-        }
+            @Override
+            public boolean onMapPoiClick(MapPoi mapPoi) {
+                return false;
+            }
+        });
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        ((AMap) map).setOnMapClickListener(new AMap.OnMapClickListener() {
+//@            @Override
+//@            public void onMapClick(com.amap.api.maps.model.LatLng latLng) {
+//@                if (latLng != null) {
+//@                    point.setLatitude(latLng.latitude);
+//@                    point.setLongitude(latLng.longitude);
+//@                    mapClickListener.onMapClick(point);
+//@                }
+//@            }
+//@        });
+        //#endif
     }
 
     public void setMarkerClickListener(MarkerClickListener listener) {
@@ -210,31 +182,30 @@ public class MapHelper {
             return;
         }
         this.markerClickListener = listener;
-        switch (mapType) {
-            case Baidu:
-                ((BaiduMap) map).setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
-                    @Override
-                    public boolean onMarkerClick(com.baidu.mapapi.map.Marker marker) {
-                        if (marker != null) {
-                            markerClickListener.onMarkerClick(marker);
-                        }
-                        return false;
-                    }
-                });
-                break;
 
-            default:
-                ((AMap) map).setOnMarkerClickListener(new AMap.OnMarkerClickListener() {
-                    @Override
-                    public boolean onMarkerClick(com.amap.api.maps.model.Marker marker) {
-                        if (marker != null) {
-                            markerClickListener.onMarkerClick(marker);
-                        }
-                        return false;
-                    }
-                });
-                break;
-        }
+        //#if MAP_TYPE == 1
+        ((BaiduMap) map).setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(com.baidu.mapapi.map.Marker marker) {
+                if (marker != null) {
+                    markerClickListener.onMarkerClick(marker);
+                }
+                return false;
+            }
+        });
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        ((AMap) map).setOnMarkerClickListener(new AMap.OnMarkerClickListener() {
+//@            @Override
+//@            public boolean onMarkerClick(com.amap.api.maps.model.Marker marker) {
+//@                if (marker != null) {
+//@                    markerClickListener.onMarkerClick(marker);
+//@                }
+//@                return false;
+//@            }
+//@        });
+        //#endif
     }
 
     public interface MapLoadedListener {

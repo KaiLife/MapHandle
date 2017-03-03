@@ -11,6 +11,8 @@ import com.baidu.mapapi.map.MapView;
 
 public class BaiduMapHelper {
 
+    //#if MAP_TYPE == 1
+
     private MapView mMapView = null;
     private BaiduMap mBaiduMap = null;
 
@@ -34,4 +36,6 @@ public class BaiduMapHelper {
     public void onDestroy(){
         mMapView.onDestroy();
     }
+
+    //#endif
 }
