@@ -137,6 +137,24 @@ public class MapHelper {
         //#endif
     }
 
+    public void animateMap(@NonNull LatLng target, float zoom) {
+        //#if MAP_TYPE == 1
+//@        if (map instanceof com.baidu.mapapi.map.BaiduMap) {
+//@        ((com.baidu.mapapi.map.BaiduMap) map).animateMapStatus(com.baidu.mapapi.map.MapStatusUpdateFactory.newMapStatus(
+//@                new com.baidu.mapapi.map.MapStatus.Builder().target(new com.baidu.mapapi.model.LatLng(target.getLatitude(),
+//@                        target.getLongitude())).zoom(zoom).build()));
+//@        }
+        //#endif
+
+        //#if MAP_TYPE == 0
+        if (map instanceof com.amap.api.maps.AMap) {
+            ((com.amap.api.maps.AMap) map).animateCamera(com.amap.api.maps.CameraUpdateFactory.newCameraPosition(
+                    new com.amap.api.maps.model.CameraPosition(new com.amap.api.maps.model.LatLng(target.getLatitude(),
+                            target.getLongitude()), zoom, 0, 0)));
+        }
+        //#endif
+    }
+
     public void setMapLoadedListener(MapLoadedListener listener) {
         if (listener == null) {
             return;
