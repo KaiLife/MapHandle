@@ -3,8 +3,8 @@ package com.geely.dilan.maphandle;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.baidu.mapapi.map.MapView;
 import com.geely.dilan.maphandle.map.common.MapHelper;
+import com.geely.dilan.maphandle.map.common.MapView;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         MapView mMapView = (MapView) findViewById(R.id.map);
-        mapHelper = new MapHelper(mMapView);
+        mapHelper = new MapHelper(mMapView.getMap());
         mapHelper.onCreate(savedInstanceState);
     }
 
