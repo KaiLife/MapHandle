@@ -15,11 +15,11 @@ import android.widget.FrameLayout;
 public class MapView extends FrameLayout {
 
     //#if MAP_TYPE == 1
-//@    private com.baidu.mapapi.map.MapView baiduMap;
+    private com.baidu.mapapi.map.MapView baiduMap;
     //#endif
 
     //#if MAP_TYPE == 0
-    private com.amap.api.maps.MapView gaodeMap;
+//@    private com.amap.api.maps.MapView gaodeMap;
     //#endif
 
     public MapView(@NonNull Context context) {
@@ -39,16 +39,16 @@ public class MapView extends FrameLayout {
 
     private void init(@NonNull Context context) {
         //#if MAP_TYPE == 1
-//@        baiduMap = new com.baidu.mapapi.map.MapView(context,
-//@                new com.baidu.mapapi.map.BaiduMapOptions().compassEnabled(false).zoomControlsEnabled(false));
-//@        baiduMap.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-//@        addView(baiduMap);
+        baiduMap = new com.baidu.mapapi.map.MapView(context,
+                new com.baidu.mapapi.map.BaiduMapOptions().compassEnabled(false).zoomControlsEnabled(false));
+        baiduMap.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        addView(baiduMap);
         //#endif
 
         //#if MAP_TYPE == 0
-        gaodeMap = new com.amap.api.maps.MapView(context);
-        gaodeMap.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        addView(gaodeMap);
+//@        gaodeMap = new com.amap.api.maps.MapView(context);
+//@        gaodeMap.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+//@        addView(gaodeMap);
         //#endif
 
         Log.d("MapView: ", String.valueOf(getChildCount()));
@@ -56,11 +56,11 @@ public class MapView extends FrameLayout {
 
     public Object getMap() {
         //#if MAP_TYPE == 1
-//@        return baiduMap;
+        return baiduMap;
         //#endif
 
         //#if MAP_TYPE == 0
-        return gaodeMap;
+//@        return gaodeMap;
         //#endif
     }
 }

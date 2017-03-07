@@ -9,7 +9,7 @@ import com.geely.dilan.maphandle.map.common.MapHelper;
 import com.geely.dilan.maphandle.map.common.MapView;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private MapHelper mapHelper;
 
@@ -22,12 +22,9 @@ public class MainActivity extends AppCompatActivity {
         mapHelper = new MapHelper(mMapView.getMap());
         mapHelper.onCreate(savedInstanceState);
 
-        findViewById(R.id.btn_test).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mapHelper.animateMap(new LatLng(39.983456, 116.3154950), 18);
-            }
-        });
+        findViewById(R.id.btn_test).setOnClickListener(this);
+        findViewById(R.id.btn_zoomin).setOnClickListener(this);
+        findViewById(R.id.btn_zoomout).setOnClickListener(this);
     }
 
     @Override
@@ -54,4 +51,23 @@ public class MainActivity extends AppCompatActivity {
         mapHelper.onDestroy();
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_test:
+                mapHelper.animateMap(new LatLng(39.983456, 116.3154950), 18);
+                break;
+
+            case R.id.btn_zoomin:
+                mapHelper.zoomIn();
+                break;
+
+            case R.id.btn_zoomout:
+                mapHelper.zoomOut();
+                break;
+
+            default:
+                break;
+        }
+    }
 }
