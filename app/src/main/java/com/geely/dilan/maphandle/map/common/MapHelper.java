@@ -16,10 +16,7 @@ public class MapHelper {
     private BaiduMapHelper baiduMapHelper;
     private GaodeMapHelper gaodeMapHelper;
     private Object map;
-
-    private MapLoadedListener mapLoadedListener;
-    private MapClickListener mapClickListener;
-    private MarkerClickListener markerClickListener;
+    private boolean locOpened;
 
     /**
      * 建议该方法放在Application的初始化方法中
@@ -33,6 +30,12 @@ public class MapHelper {
     }
 
     public MapHelper(@NonNull Object mapView) {
+        this(mapView, true);
+    }
+
+    public MapHelper(@NonNull Object mapView, boolean locOpened) {
+        this.locOpened = locOpened;
+
         //#if MAP_TYPE == 1
 //@        if (mapView instanceof com.baidu.mapapi.map.MapView) {
 //@            baiduMapHelper = new BaiduMapHelper((com.baidu.mapapi.map.MapView) mapView);
@@ -44,42 +47,6 @@ public class MapHelper {
         if (mapView instanceof com.amap.api.maps.MapView) {
             gaodeMapHelper = new GaodeMapHelper((com.amap.api.maps.MapView) mapView);
             map = gaodeMapHelper.getAMap();
-        }
-        //#endif
-
-        initMapSettings();
-    }
-
-    private void initMapSettings() {
-        //#if MAP_TYPE == 1
-//@        if (map instanceof com.baidu.mapapi.map.BaiduMap) {
-//@            com.baidu.mapapi.map.BaiduMap baiduMap = (com.baidu.mapapi.map.BaiduMap) map;
-//@
-//@            com.baidu.mapapi.map.UiSettings uiSettings = baiduMap.getUiSettings();
-//@            uiSettings.setOverlookingGesturesEnabled(false);
-//@            uiSettings.setRotateGesturesEnabled(false);
-//@            uiSettings.setScrollGesturesEnabled(true);
-//@            uiSettings.setZoomGesturesEnabled(true);
-//@
-//@//            baiduMap.setMaxAndMinZoomLevel(21, 3);
-//@        }
-        //#endif
-
-        //#if MAP_TYPE == 0
-        if (map instanceof com.amap.api.maps.AMap) {
-            com.amap.api.maps.AMap aMap = ((com.amap.api.maps.AMap) map);
-
-            com.amap.api.maps.UiSettings uiSettings = aMap.getUiSettings();
-            uiSettings.setMyLocationButtonEnabled(false);
-            uiSettings.setRotateGesturesEnabled(false);
-            uiSettings.setScrollGesturesEnabled(true);
-            uiSettings.setScaleControlsEnabled(true);
-            uiSettings.setZoomGesturesEnabled(true);
-            uiSettings.setZoomControlsEnabled(false);
-            uiSettings.setTiltGesturesEnabled(false);
-
-//            aMap.setMaxZoomLevel(19);
-//            aMap.setMinZoomLevel(3);
         }
         //#endif
     }
@@ -154,18 +121,14 @@ public class MapHelper {
      */
     public void animateMap(@NonNull LatLng target, float zoom) {
         //#if MAP_TYPE == 1
-//@        if (map instanceof com.baidu.mapapi.map.BaiduMap) {
-//@            ((com.baidu.mapapi.map.BaiduMap) map).animateMapStatus(com.baidu.mapapi.map.MapStatusUpdateFactory.newMapStatus(
-//@                    new com.baidu.mapapi.map.MapStatus.Builder().target(new com.baidu.mapapi.model.LatLng(target.getLatitude(),
-//@                            target.getLongitude())).zoom(zoom).build()));
+//@        if (baiduMapHelper != null) {
+//@            baiduMapHelper.animateMap(new com.baidu.mapapi.model.LatLng(target.getLatitude(), target.getLongitude()), zoom);
 //@        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (map instanceof com.amap.api.maps.AMap) {
-            ((com.amap.api.maps.AMap) map).animateCamera(com.amap.api.maps.CameraUpdateFactory.newCameraPosition(
-                    new com.amap.api.maps.model.CameraPosition(new com.amap.api.maps.model.LatLng(target.getLatitude(),
-                            target.getLongitude()), zoom, 0, 0)));
+        if (gaodeMapHelper != null) {
+            gaodeMapHelper.animateMap(new com.amap.api.maps.model.LatLng(target.getLatitude(), target.getLongitude()), zoom);
         }
         //#endif
     }
@@ -175,14 +138,14 @@ public class MapHelper {
      */
     public void zoomIn() {
         //#if MAP_TYPE == 1
-//@        if (map instanceof com.baidu.mapapi.map.BaiduMap) {
-//@            ((com.baidu.mapapi.map.BaiduMap) map).animateMapStatus(com.baidu.mapapi.map.MapStatusUpdateFactory.zoomIn());
+//@        if (baiduMapHelper != null) {
+//@            baiduMapHelper.zoomIn();
 //@        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (map instanceof com.amap.api.maps.AMap) {
-            ((com.amap.api.maps.AMap) map).animateCamera(com.amap.api.maps.CameraUpdateFactory.zoomIn());
+        if (gaodeMapHelper != null) {
+            gaodeMapHelper.zoomIn();
         }
         //#endif
     }
@@ -192,14 +155,14 @@ public class MapHelper {
      */
     public void zoomOut() {
         //#if MAP_TYPE == 1
-//@        if (map instanceof com.baidu.mapapi.map.BaiduMap) {
-//@            ((com.baidu.mapapi.map.BaiduMap) map).animateMapStatus(com.baidu.mapapi.map.MapStatusUpdateFactory.zoomOut());
+//@        if (baiduMapHelper != null) {
+//@            baiduMapHelper.zoomOut();
 //@        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (map instanceof com.amap.api.maps.AMap) {
-            ((com.amap.api.maps.AMap) map).animateCamera(com.amap.api.maps.CameraUpdateFactory.zoomOut());
+        if (gaodeMapHelper != null) {
+            gaodeMapHelper.zoomOut();
         }
         //#endif
     }
@@ -208,24 +171,17 @@ public class MapHelper {
         if (listener == null) {
             return;
         }
-        this.mapLoadedListener = listener;
 
         //#if MAP_TYPE == 1
-//@        ((com.baidu.mapapi.map.BaiduMap) map).setOnMapLoadedCallback(new com.baidu.mapapi.map.BaiduMap.OnMapLoadedCallback() {
-//@            @Override
-//@            public void onMapLoaded() {
-//@                mapLoadedListener.onMapLoaded();
-//@            }
-//@        });
+//@        if (baiduMapHelper != null) {
+//@            baiduMapHelper.setMapLoadedListener(listener);
+//@        }
         //#endif
 
         //#if MAP_TYPE == 0
-        ((com.amap.api.maps.AMap) map).setOnMapLoadedListener(new com.amap.api.maps.AMap.OnMapLoadedListener() {
-            @Override
-            public void onMapLoaded() {
-                mapLoadedListener.onMapLoaded();
-            }
-        });
+        if (gaodeMapHelper != null) {
+            gaodeMapHelper.setMapLoadedListener(listener);
+        }
         //#endif
     }
 
@@ -233,38 +189,17 @@ public class MapHelper {
         if (listener == null) {
             return;
         }
-        this.mapClickListener = listener;
-        final LatLng point = new LatLng();
 
         //#if MAP_TYPE == 1
-//@        ((com.baidu.mapapi.map.BaiduMap) map).setOnMapClickListener(new com.baidu.mapapi.map.BaiduMap.OnMapClickListener() {
-//@            @Override
-//@            public void onMapClick(com.baidu.mapapi.model.LatLng latLng) {
-//@                if (latLng != null) {
-//@                    point.setLatitude(latLng.latitude);
-//@                    point.setLongitude(latLng.longitude);
-//@                    mapClickListener.onMapClick(point);
-//@                }
-//@            }
-//@
-//@            @Override
-//@            public boolean onMapPoiClick(com.baidu.mapapi.map.MapPoi mapPoi) {
-//@                return false;
-//@            }
-//@        });
+//@        if (baiduMapHelper != null) {
+//@            baiduMapHelper.setMapClickListener(listener);
+//@        }
         //#endif
 
         //#if MAP_TYPE == 0
-        ((com.amap.api.maps.AMap) map).setOnMapClickListener(new com.amap.api.maps.AMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(com.amap.api.maps.model.LatLng latLng) {
-                if (latLng != null) {
-                    point.setLatitude(latLng.latitude);
-                    point.setLongitude(latLng.longitude);
-                    mapClickListener.onMapClick(point);
-                }
-            }
-        });
+        if (gaodeMapHelper != null) {
+            gaodeMapHelper.setMapClickListener(listener);
+        }
         //#endif
     }
 
@@ -272,30 +207,17 @@ public class MapHelper {
         if (listener == null) {
             return;
         }
-        this.markerClickListener = listener;
 
         //#if MAP_TYPE == 1
-//@        ((com.baidu.mapapi.map.BaiduMap) map).setOnMarkerClickListener(new com.baidu.mapapi.map.BaiduMap.OnMarkerClickListener() {
-//@            @Override
-//@            public boolean onMarkerClick(com.baidu.mapapi.map.Marker marker) {
-//@                if (marker != null) {
-//@                    markerClickListener.onMarkerClick(marker);
-//@                }
-//@                return false;
-//@            }
-//@        });
+//@        if (baiduMapHelper != null) {
+//@            baiduMapHelper.setMarkerClickListener(listener);
+//@        }
         //#endif
 
         //#if MAP_TYPE == 0
-        ((com.amap.api.maps.AMap) map).setOnMarkerClickListener(new com.amap.api.maps.AMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(com.amap.api.maps.model.Marker marker) {
-                if (marker != null) {
-                    markerClickListener.onMarkerClick(marker);
-                }
-                return false;
-            }
-        });
+        if (gaodeMapHelper != null) {
+            gaodeMapHelper.setMarkerClickListener(listener);
+        }
         //#endif
     }
 

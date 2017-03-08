@@ -5,7 +5,6 @@ import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.FrameLayout;
 
 /**
@@ -23,13 +22,11 @@ public class MapView extends FrameLayout {
     //#endif
 
     public MapView(@NonNull Context context) {
-        super(context);
-        init(context);
+        this(context, null);
     }
 
     public MapView(@NonNull Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        init(context);
+        this(context, attrs, 0);
     }
 
     public MapView(@NonNull Context context, @Nullable AttributeSet attrs, @AttrRes int defStyleAttr) {
@@ -50,8 +47,6 @@ public class MapView extends FrameLayout {
         gaodeMap.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         addView(gaodeMap);
         //#endif
-
-        Log.d("MapView: ", String.valueOf(getChildCount()));
     }
 
     public Object getMap() {
