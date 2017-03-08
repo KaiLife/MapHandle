@@ -16,7 +16,6 @@ public class MapHelper {
     private BaiduMapHelper baiduMapHelper;
     private GaodeMapHelper gaodeMapHelper;
     private Object map;
-    private boolean locOpened;
 
     /**
      * 建议该方法放在Application的初始化方法中
@@ -25,7 +24,7 @@ public class MapHelper {
      */
     public static void init(Context context) {
         //#if MAP_TYPE == 1
-//@        com.baidu.mapapi.SDKInitializer.initialize(context);
+        com.baidu.mapapi.SDKInitializer.initialize(context);
         //#endif
     }
 
@@ -33,21 +32,25 @@ public class MapHelper {
         this(mapView, true);
     }
 
+    /**
+     * 地图操作类
+     *
+     * @param mapView   地图
+     * @param locOpened 是否开启定位
+     */
     public MapHelper(@NonNull Object mapView, boolean locOpened) {
-        this.locOpened = locOpened;
-
         //#if MAP_TYPE == 1
-//@        if (mapView instanceof com.baidu.mapapi.map.MapView) {
-//@            baiduMapHelper = new BaiduMapHelper((com.baidu.mapapi.map.MapView) mapView);
-//@            map = baiduMapHelper.getBaiduMap();
-//@        }
+        if (mapView instanceof com.baidu.mapapi.map.MapView) {
+            baiduMapHelper = new BaiduMapHelper((com.baidu.mapapi.map.MapView) mapView, locOpened);
+            map = baiduMapHelper.getBaiduMap();
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (mapView instanceof com.amap.api.maps.MapView) {
-            gaodeMapHelper = new GaodeMapHelper((com.amap.api.maps.MapView) mapView);
-            map = gaodeMapHelper.getAMap();
-        }
+//@        if (mapView instanceof com.amap.api.maps.MapView) {
+//@            gaodeMapHelper = new GaodeMapHelper((com.amap.api.maps.MapView) mapView, locOpened);
+//@            map = gaodeMapHelper.getAMap();
+//@        }
         //#endif
     }
 
@@ -55,61 +58,67 @@ public class MapHelper {
         return map;
     }
 
-    public void onCreate(Bundle savedInstanceState) {
-        //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.onCreate(savedInstanceState);
+    public void onCreate(Bundle savedInstanceState, MapLocationListenner locationListenner) {
+        //#if MAP_TYPE == 1
+        if (baiduMapHelper != null && locationListenner != null) {
+            baiduMapHelper.onCreate(locationListenner);
         }
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        if (gaodeMapHelper != null && locationListenner != null) {
+//@            gaodeMapHelper.onCreate(savedInstanceState, locationListenner);
+//@        }
         //#endif
     }
 
     public void onResume() {
         //#if MAP_TYPE == 1
-//@        if (baiduMapHelper != null) {
-//@            baiduMapHelper.onResume();
-//@        }
+        if (baiduMapHelper != null) {
+            baiduMapHelper.onResume();
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.onResume();
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.onResume();
+//@        }
         //#endif
     }
 
     public void onPause() {
         //#if MAP_TYPE == 1
-//@        if (baiduMapHelper != null) {
-//@            baiduMapHelper.onPause();
-//@        }
+        if (baiduMapHelper != null) {
+            baiduMapHelper.onPause();
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.onPause();
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.onPause();
+//@        }
         //#endif
     }
 
     public void onSaveInstanceState(Bundle outState) {
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.onSaveInstanceState(outState);
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.onSaveInstanceState(outState);
+//@        }
         //#endif
     }
 
     public void onDestroy() {
         //#if MAP_TYPE == 1
-//@        if (baiduMapHelper != null) {
-//@            baiduMapHelper.onDestroy();
-//@        }
+        if (baiduMapHelper != null) {
+            baiduMapHelper.onDestroy();
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.onDestroy();
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.onDestroy();
+//@        }
         //#endif
     }
 
@@ -121,15 +130,15 @@ public class MapHelper {
      */
     public void animateMap(@NonNull LatLng target, float zoom) {
         //#if MAP_TYPE == 1
-//@        if (baiduMapHelper != null) {
-//@            baiduMapHelper.animateMap(new com.baidu.mapapi.model.LatLng(target.getLatitude(), target.getLongitude()), zoom);
-//@        }
+        if (baiduMapHelper != null) {
+            baiduMapHelper.animateMap(new com.baidu.mapapi.model.LatLng(target.getLatitude(), target.getLongitude()), zoom);
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.animateMap(new com.amap.api.maps.model.LatLng(target.getLatitude(), target.getLongitude()), zoom);
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.animateMap(new com.amap.api.maps.model.LatLng(target.getLatitude(), target.getLongitude()), zoom);
+//@        }
         //#endif
     }
 
@@ -138,15 +147,15 @@ public class MapHelper {
      */
     public void zoomIn() {
         //#if MAP_TYPE == 1
-//@        if (baiduMapHelper != null) {
-//@            baiduMapHelper.zoomIn();
-//@        }
+        if (baiduMapHelper != null) {
+            baiduMapHelper.zoomIn();
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.zoomIn();
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.zoomIn();
+//@        }
         //#endif
     }
 
@@ -155,15 +164,15 @@ public class MapHelper {
      */
     public void zoomOut() {
         //#if MAP_TYPE == 1
-//@        if (baiduMapHelper != null) {
-//@            baiduMapHelper.zoomOut();
-//@        }
+        if (baiduMapHelper != null) {
+            baiduMapHelper.zoomOut();
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.zoomOut();
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.zoomOut();
+//@        }
         //#endif
     }
 
@@ -173,15 +182,15 @@ public class MapHelper {
         }
 
         //#if MAP_TYPE == 1
-//@        if (baiduMapHelper != null) {
-//@            baiduMapHelper.setMapLoadedListener(listener);
-//@        }
+        if (baiduMapHelper != null) {
+            baiduMapHelper.setMapLoadedListener(listener);
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.setMapLoadedListener(listener);
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.setMapLoadedListener(listener);
+//@        }
         //#endif
     }
 
@@ -191,15 +200,15 @@ public class MapHelper {
         }
 
         //#if MAP_TYPE == 1
-//@        if (baiduMapHelper != null) {
-//@            baiduMapHelper.setMapClickListener(listener);
-//@        }
+        if (baiduMapHelper != null) {
+            baiduMapHelper.setMapClickListener(listener);
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.setMapClickListener(listener);
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.setMapClickListener(listener);
+//@        }
         //#endif
     }
 
@@ -209,15 +218,15 @@ public class MapHelper {
         }
 
         //#if MAP_TYPE == 1
-//@        if (baiduMapHelper != null) {
-//@            baiduMapHelper.setMarkerClickListener(listener);
-//@        }
+        if (baiduMapHelper != null) {
+            baiduMapHelper.setMarkerClickListener(listener);
+        }
         //#endif
 
         //#if MAP_TYPE == 0
-        if (gaodeMapHelper != null) {
-            gaodeMapHelper.setMarkerClickListener(listener);
-        }
+//@        if (gaodeMapHelper != null) {
+//@            gaodeMapHelper.setMarkerClickListener(listener);
+//@        }
         //#endif
     }
 
@@ -231,5 +240,21 @@ public class MapHelper {
 
     public interface MarkerClickListener {
         boolean onMarkerClick(Object marker);
+    }
+
+    public interface MapLocationListenner {
+        /**
+         * 第一次定位成功
+         *
+         * @param location 百度-BDLocation，高德-AMapLocation
+         */
+        void onFirstSuccess(Object location);
+
+        /**
+         * 定位成功
+         *
+         * @param location 百度-BDLocation，高德-AMapLocation
+         */
+        void onLocationSuccess(Object location);
     }
 }

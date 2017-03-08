@@ -9,7 +9,7 @@ import com.geely.dilan.maphandle.map.common.MapHelper;
 import com.geely.dilan.maphandle.map.common.MapView;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapHelper.MapLocationListenner {
 
     private MapHelper mapHelper;
 
@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         MapView mMapView = (MapView) findViewById(R.id.map);
         mapHelper = new MapHelper(mMapView.getMap());
-        mapHelper.onCreate(savedInstanceState);
+        mapHelper.onCreate(savedInstanceState, this);
 
         findViewById(R.id.btn_test).setOnClickListener(this);
         findViewById(R.id.btn_zoomin).setOnClickListener(this);
@@ -69,5 +69,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onFirstSuccess(Object location) {
+        if (location == null) {
+            return;
+        }
+
+        if (location instanceof com.baidu.location.BDLocation) {
+            com.baidu.location.BDLocation bdLocation = (com.baidu.location.BDLocation) location;
+            mapHelper.animateMap(new LatLng(bdLocation.getLatitude(), bdLocation.getLongitude()), 18);
+        }
+
+        if (location instanceof com.amap.api.location.AMapLocation) {
+            com.amap.api.location.AMapLocation aMapLocation = (com.amap.api.location.AMapLocation) location;
+            mapHelper.animateMap(new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()), 18);
+        }
+    }
+
+    @Override
+    public void onLocationSuccess(Object location) {
+
     }
 }
