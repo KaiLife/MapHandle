@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         MapView mMapView = (MapView) findViewById(R.id.map);
-        mapHelper = new MapHelper(mMapView.getMap());
+        mapHelper = new MapHelper(this, mMapView.getMap());
         mapHelper.onCreate(savedInstanceState, this);
 
         findViewById(R.id.btn_test).setOnClickListener(this);

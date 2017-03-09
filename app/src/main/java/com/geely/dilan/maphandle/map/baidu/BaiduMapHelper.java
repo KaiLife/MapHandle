@@ -1,6 +1,13 @@
 package com.geely.dilan.maphandle.map.baidu;
 
 
+import android.content.Context;
+import android.support.annotation.NonNull;
+
+import com.baidu.mapapi.map.MyLocationData;
+import com.geely.dilan.maphandle.R;
+import com.geely.dilan.maphandle.map.bean.LatLng;
+import com.geely.dilan.maphandle.map.common.MapHelper;
 
 /**
  * Created by XinKai.Tong on 2017/3/1.
@@ -9,18 +16,19 @@ package com.geely.dilan.maphandle.map.baidu;
 public class BaiduMapHelper {
 
     //#if MAP_TYPE == 1
+
     // 定位相关
     private com.baidu.location.LocationClient mLocClient = null;
     private com.baidu.mapapi.map.MapView mMapView = null;
     private com.baidu.mapapi.map.BaiduMap mBaiduMap = null;
-    private boolean locOpened;
     private boolean isFirstLoc; // 是否首次定位
+    private Context context;
+    private MapHelper.MyOrientationListener myOrientationListener;
 
-    public BaiduMapHelper(@android.support.annotation.NonNull com.baidu.mapapi.map.MapView mapView, boolean locOpened) {
-        this.locOpened = locOpened;
+    public BaiduMapHelper(@NonNull Context context, @NonNull com.baidu.mapapi.map.MapView mapView) {
+        this.context = context;
         mMapView = mapView;
         mBaiduMap = mMapView.getMap();
-
         initMapSet();
     }
 
@@ -38,11 +46,11 @@ public class BaiduMapHelper {
         return mBaiduMap;
     }
 
-    public void onCreate(final com.geely.dilan.maphandle.map.common.MapHelper.MapLocationListenner listenner) {
-        if (locOpened) {
+    public void onCreate(final MapHelper.MapLocationListenner listenner) {
+        if (listenner != null) {
             isFirstLoc = true;
             // 定位初始化
-            mLocClient = new com.baidu.location.LocationClient(mMapView.getContext());
+            mLocClient = new com.baidu.location.LocationClient(context);
             mLocClient.registerLocationListener(new com.baidu.location.BDLocationListener() {
                 @Override
                 public void onReceiveLocation(com.baidu.location.BDLocation bdLocation) {
@@ -66,12 +74,25 @@ public class BaiduMapHelper {
                 }
             });
 
+            myOrientationListener = new MapHelper.MyOrientationListener() {
+                @Override
+                public void onOrientationChanged(float x) {
+                    MyLocationData locData = mBaiduMap.getLocationData();
+                    if (locData != null) {
+                        mBaiduMap.setMyLocationData(new MyLocationData.Builder()
+                                .direction(x)
+                                .latitude(locData.latitude)
+                                .longitude(locData.longitude).build());
+                    }
+                }
+            };
+
             // 开启定位图层
             mBaiduMap.setMyLocationEnabled(true);
 
             mBaiduMap.setMyLocationConfigeration(new com.baidu.mapapi.map.MyLocationConfiguration(
                     com.baidu.mapapi.map.MyLocationConfiguration.LocationMode.NORMAL, true,
-                    com.baidu.mapapi.map.BitmapDescriptorFactory.fromResource(com.geely.dilan.maphandle.R.mipmap.dibiaowo)));
+                    com.baidu.mapapi.map.BitmapDescriptorFactory.fromResource(R.mipmap.navi_map_gps_locked)));
 
             com.baidu.location.LocationClientOption option = new com.baidu.location.LocationClientOption();
             option.setOpenGps(true); // 打开gps
@@ -120,7 +141,7 @@ public class BaiduMapHelper {
         mBaiduMap.animateMapStatus(com.baidu.mapapi.map.MapStatusUpdateFactory.zoomOut());
     }
 
-    public void setMapLoadedListener(final com.geely.dilan.maphandle.map.common.MapHelper.MapLoadedListener listener) {
+    public void setMapLoadedListener(final MapHelper.MapLoadedListener listener) {
         mBaiduMap.setOnMapLoadedCallback(new com.baidu.mapapi.map.BaiduMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
@@ -129,12 +150,12 @@ public class BaiduMapHelper {
         });
     }
 
-    public void setMapClickListener(final com.geely.dilan.maphandle.map.common.MapHelper.MapClickListener listener) {
+    public void setMapClickListener(final MapHelper.MapClickListener listener) {
         mBaiduMap.setOnMapClickListener(new com.baidu.mapapi.map.BaiduMap.OnMapClickListener() {
             @Override
             public void onMapClick(com.baidu.mapapi.model.LatLng latLng) {
                 if (latLng != null) {
-                    listener.onMapClick(new com.geely.dilan.maphandle.map.bean.LatLng(latLng.latitude, latLng.longitude));
+                    listener.onMapClick(new LatLng(latLng.latitude, latLng.longitude));
                 }
             }
 
@@ -145,7 +166,7 @@ public class BaiduMapHelper {
         });
     }
 
-    public void setMarkerClickListener(final com.geely.dilan.maphandle.map.common.MapHelper.MarkerClickListener listener) {
+    public void setMarkerClickListener(final MapHelper.MarkerClickListener listener) {
         mBaiduMap.setOnMarkerClickListener(new com.baidu.mapapi.map.BaiduMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(com.baidu.mapapi.map.Marker marker) {
@@ -155,6 +176,10 @@ public class BaiduMapHelper {
                 return false;
             }
         });
+    }
+
+    public MapHelper.MyOrientationListener getMyOrientationListener() {
+        return myOrientationListener;
     }
 
     //#endif

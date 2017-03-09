@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import com.geely.dilan.maphandle.map.baidu.BaiduMapHelper;
 import com.geely.dilan.maphandle.map.bean.LatLng;
 import com.geely.dilan.maphandle.map.gaode.GaodeMapHelper;
+import com.geely.dilan.maphandle.map.utils.SensorEventHelper;
 
 /**
  * Created by XinKai.Tong on 2017/3/1.
@@ -16,6 +17,8 @@ public class MapHelper {
     private BaiduMapHelper baiduMapHelper;
     private GaodeMapHelper gaodeMapHelper;
     private Object map;
+    private SensorEventHelper mSensorHelper;
+    private Context context;
 
     /**
      * 建议该方法放在Application的初始化方法中
@@ -28,27 +31,19 @@ public class MapHelper {
         //#endif
     }
 
-    public MapHelper(@NonNull Object mapView) {
-        this(mapView, true);
-    }
+    public MapHelper(@NonNull Context context, @NonNull Object mapView) {
+        this.context = context;
 
-    /**
-     * 地图操作类
-     *
-     * @param mapView   地图
-     * @param locOpened 是否开启定位
-     */
-    public MapHelper(@NonNull Object mapView, boolean locOpened) {
         //#if MAP_TYPE == 1
         if (mapView instanceof com.baidu.mapapi.map.MapView) {
-            baiduMapHelper = new BaiduMapHelper((com.baidu.mapapi.map.MapView) mapView, locOpened);
+            baiduMapHelper = new BaiduMapHelper(context, (com.baidu.mapapi.map.MapView) mapView);
             map = baiduMapHelper.getBaiduMap();
         }
         //#endif
 
         //#if MAP_TYPE == 0
 //@        if (mapView instanceof com.amap.api.maps.MapView) {
-//@            gaodeMapHelper = new GaodeMapHelper((com.amap.api.maps.MapView) mapView, locOpened);
+//@            gaodeMapHelper = new GaodeMapHelper(context, (com.amap.api.maps.MapView) mapView);
 //@            map = gaodeMapHelper.getAMap();
 //@        }
         //#endif
@@ -60,14 +55,16 @@ public class MapHelper {
 
     public void onCreate(Bundle savedInstanceState, MapLocationListenner locationListenner) {
         //#if MAP_TYPE == 1
-        if (baiduMapHelper != null && locationListenner != null) {
+        if (baiduMapHelper != null) {
             baiduMapHelper.onCreate(locationListenner);
+            mSensorHelper = new SensorEventHelper(context, baiduMapHelper.getMyOrientationListener());
         }
         //#endif
 
         //#if MAP_TYPE == 0
-//@        if (gaodeMapHelper != null && locationListenner != null) {
+//@        if (gaodeMapHelper != null) {
 //@            gaodeMapHelper.onCreate(savedInstanceState, locationListenner);
+//@            mSensorHelper = new SensorEventHelper(context, gaodeMapHelper.getMyOrientationListener());
 //@        }
         //#endif
     }
@@ -84,6 +81,10 @@ public class MapHelper {
 //@            gaodeMapHelper.onResume();
 //@        }
         //#endif
+
+        if (mSensorHelper != null) {
+            mSensorHelper.registerSensorListener();
+        }
     }
 
     public void onPause() {
@@ -98,6 +99,10 @@ public class MapHelper {
 //@            gaodeMapHelper.onPause();
 //@        }
         //#endif
+
+        if (mSensorHelper != null) {
+            mSensorHelper.unRegisterSensorListener();
+        }
     }
 
     public void onSaveInstanceState(Bundle outState) {
@@ -120,6 +125,11 @@ public class MapHelper {
 //@            gaodeMapHelper.onDestroy();
 //@        }
         //#endif
+
+        if (mSensorHelper != null) {
+            mSensorHelper.unRegisterSensorListener();
+        }
+        mSensorHelper = null;
     }
 
     /**
@@ -256,5 +266,12 @@ public class MapHelper {
          * @param location 百度-BDLocation，高德-AMapLocation
          */
         void onLocationSuccess(Object location);
+    }
+
+    /**
+     * 我的位置方向朝向监听
+     */
+    public interface MyOrientationListener {
+        void onOrientationChanged(float x);
     }
 }

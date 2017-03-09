@@ -1,7 +1,6 @@
 package com.geely.dilan.maphandle.map.gaode;
 
 
-
 /**
  * Created by XinKai.Tong on 2017/3/1.
  */
@@ -9,18 +8,20 @@ package com.geely.dilan.maphandle.map.gaode;
 public class GaodeMapHelper {
 
     //#if MAP_TYPE == 0
+//@
 //@    private MyLocationSource myLocationSource = null;
 //@    private MyAMapLocationListener myAMapLocationListener = null;
 //@    private com.amap.api.location.AMapLocationClient mlocationClient;
-//@    private com.amap.api.maps.LocationSource.OnLocationChangedListener mListener;
-//@    private com.geely.dilan.maphandle.map.common.MapHelper.MapLocationListenner mapLocationListenner;
+//@    private MapHelper.MapLocationListenner mapLocationListenner;
 //@    private com.amap.api.maps.MapView mMapView = null;
 //@    private com.amap.api.maps.AMap aMap = null;
-//@    private boolean locOpened;
 //@    private boolean isFirstLoc; // 是否首次定位
+//@    private Context context;
+//@    private MapHelper.MyOrientationListener myOrientationListener;
+//@    private com.amap.api.maps.model.Marker mLocMarker;
 //@
-//@    public GaodeMapHelper(@android.support.annotation.NonNull com.amap.api.maps.MapView mapView, boolean locOpened) {
-//@        this.locOpened = locOpened;
+//@    public GaodeMapHelper(@NonNull Context context, @NonNull com.amap.api.maps.MapView mapView) {
+//@        this.context = context;
 //@        mMapView = mapView;
 //@        aMap = mMapView.getMap();
 //@
@@ -45,14 +46,22 @@ public class GaodeMapHelper {
 //@        return aMap;
 //@    }
 //@
-//@    public void onCreate(android.os.Bundle savedInstanceState, final com.geely.dilan.maphandle.map.common.MapHelper.MapLocationListenner listenner) {
+//@    public void onCreate(Bundle savedInstanceState, final MapHelper.MapLocationListenner listenner) {
 //@        mMapView.onCreate(savedInstanceState);
-//@        if (locOpened) {
+//@        if (listenner != null) {
 //@            isFirstLoc = true;
 //@            mapLocationListenner = listenner;
 //@            myLocationSource = new MyLocationSource();
 //@            myAMapLocationListener = new MyAMapLocationListener();
 //@            aMap.setLocationSource(myLocationSource);// 设置定位监听
+//@            myOrientationListener = new MapHelper.MyOrientationListener() {
+//@                @Override
+//@                public void onOrientationChanged(float x) {
+//@                    if (mLocMarker != null) {
+//@                        mLocMarker.setRotateAngle(x);
+//@                    }
+//@                }
+//@            };
 //@            initMapLoc();
 //@        }
 //@    }
@@ -62,18 +71,6 @@ public class GaodeMapHelper {
 //@        aMap.setMyLocationEnabled(true);
 //@        // 设置定位的类型为定位模式 ，可以由定位、跟随或地图根据面向方向旋转几种
 //@        aMap.setMyLocationType(com.amap.api.maps.AMap.LOCATION_TYPE_LOCATE);
-//@        com.amap.api.maps.model.MyLocationStyle myLocationStyle = new com.amap.api.maps.model.MyLocationStyle();
-//@        // 自定义定位蓝点图标
-//@        myLocationStyle.myLocationIcon(com.amap.api.maps.model.BitmapDescriptorFactory.
-//@                fromResource(com.geely.dilan.maphandle.R.mipmap.dibiaowo));
-//@        // 自定义精度范围的圆形边框颜色
-//@        myLocationStyle.strokeColor(0x00000000);
-//@        //自定义精度范围的圆形边框宽度
-//@        myLocationStyle.strokeWidth(0);
-//@        // 设置圆形的填充颜色
-//@        myLocationStyle.radiusFillColor(0x00000000);
-//@        // 将自定义的 myLocationStyle 对象添加到地图上
-//@        aMap.setMyLocationStyle(myLocationStyle);
 //@    }
 //@
 //@    public void onResume() {
@@ -107,7 +104,7 @@ public class GaodeMapHelper {
 //@        aMap.animateCamera(com.amap.api.maps.CameraUpdateFactory.zoomOut());
 //@    }
 //@
-//@    public void setMapLoadedListener(final com.geely.dilan.maphandle.map.common.MapHelper.MapLoadedListener listener) {
+//@    public void setMapLoadedListener(final MapHelper.MapLoadedListener listener) {
 //@        aMap.setOnMapLoadedListener(new com.amap.api.maps.AMap.OnMapLoadedListener() {
 //@            @Override
 //@            public void onMapLoaded() {
@@ -116,18 +113,18 @@ public class GaodeMapHelper {
 //@        });
 //@    }
 //@
-//@    public void setMapClickListener(final com.geely.dilan.maphandle.map.common.MapHelper.MapClickListener listener) {
+//@    public void setMapClickListener(final MapHelper.MapClickListener listener) {
 //@        aMap.setOnMapClickListener(new com.amap.api.maps.AMap.OnMapClickListener() {
 //@            @Override
 //@            public void onMapClick(com.amap.api.maps.model.LatLng latLng) {
 //@                if (latLng != null) {
-//@                    listener.onMapClick(new com.geely.dilan.maphandle.map.bean.LatLng(latLng.latitude, latLng.longitude));
+//@                    listener.onMapClick(new LatLng(latLng.latitude, latLng.longitude));
 //@                }
 //@            }
 //@        });
 //@    }
 //@
-//@    public void setMarkerClickListener(final com.geely.dilan.maphandle.map.common.MapHelper.MarkerClickListener listener) {
+//@    public void setMarkerClickListener(final MapHelper.MarkerClickListener listener) {
 //@        aMap.setOnMarkerClickListener(new com.amap.api.maps.AMap.OnMarkerClickListener() {
 //@            @Override
 //@            public boolean onMarkerClick(com.amap.api.maps.model.Marker marker) {
@@ -146,9 +143,8 @@ public class GaodeMapHelper {
 //@         */
 //@        @Override
 //@        public void activate(com.amap.api.maps.LocationSource.OnLocationChangedListener listener) {
-//@            mListener = listener;
 //@            if (mlocationClient == null) {
-//@                mlocationClient = new com.amap.api.location.AMapLocationClient(mMapView.getContext());
+//@                mlocationClient = new com.amap.api.location.AMapLocationClient(context);
 //@                com.amap.api.location.AMapLocationClientOption mLocationOption = new com.amap.api.location.AMapLocationClientOption();
 //@                //设置定位监听
 //@                mlocationClient.setLocationListener(myAMapLocationListener);
@@ -174,7 +170,6 @@ public class GaodeMapHelper {
 //@    }
 //@
 //@    private void stopLocation() {
-//@        mListener = null;
 //@        if (mlocationClient != null) {
 //@            mlocationClient.stopLocation();
 //@            mlocationClient.onDestroy();
@@ -189,19 +184,38 @@ public class GaodeMapHelper {
 //@         */
 //@        @Override
 //@        public void onLocationChanged(com.amap.api.location.AMapLocation amapLocation) {
-//@            if (mListener != null && amapLocation != null) {
+//@            if (amapLocation != null) {
 //@                if (amapLocation.getErrorCode() == 0) {
-//@                    mListener.onLocationChanged(amapLocation);// 显示系统小蓝点
 //@                    if (mapLocationListenner != null) {
 //@                        mapLocationListenner.onLocationSuccess(amapLocation);
 //@                        if (isFirstLoc) {
 //@                            isFirstLoc = false;
+//@                            addLocMarker(new com.amap.api.maps.model.LatLng(amapLocation.getLatitude(), amapLocation.getLongitude()));
 //@                            mapLocationListenner.onFirstSuccess(amapLocation);
 //@                        }
 //@                    }
 //@                }
 //@            }
 //@        }
+//@    }
+//@
+//@    public MapHelper.MyOrientationListener getMyOrientationListener() {
+//@        return myOrientationListener;
+//@    }
+//@
+//@    /**
+//@     * 添加定位Marker
+//@     */
+//@    private void addLocMarker(com.amap.api.maps.model.LatLng latlng) {
+//@        if (mLocMarker != null) {
+//@            return;
+//@        }
+//@        BitmapDescriptor des = BitmapDescriptorFactory.fromResource(R.mipmap.navi_map_gps_locked);
+//@        MarkerOptions options = new MarkerOptions();
+//@        options.icon(des);
+//@        options.anchor(0.5f, 0.5f);
+//@        options.position(latlng);
+//@        mLocMarker = aMap.addMarker(options);
 //@    }
 //@
     //#endif
