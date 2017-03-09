@@ -1,6 +1,14 @@
 package com.geely.dilan.maphandle.map.gaode;
 
 
+import android.content.Context;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+
+
+import com.geely.dilan.maphandle.R;
+import com.geely.dilan.maphandle.map.common.MapHelper;
+
 /**
  * Created by XinKai.Tong on 2017/3/1.
  */
@@ -118,7 +126,7 @@ public class GaodeMapHelper {
 //@            @Override
 //@            public void onMapClick(com.amap.api.maps.model.LatLng latLng) {
 //@                if (latLng != null) {
-//@                    listener.onMapClick(new LatLng(latLng.latitude, latLng.longitude));
+//@                    listener.onMapClick(new com.geely.dilan.maphandle.map.bean.LatLng(latLng.latitude, latLng.longitude));
 //@                }
 //@            }
 //@        });
@@ -210,8 +218,9 @@ public class GaodeMapHelper {
 //@        if (mLocMarker != null) {
 //@            return;
 //@        }
-//@        BitmapDescriptor des = BitmapDescriptorFactory.fromResource(R.mipmap.navi_map_gps_locked);
-//@        MarkerOptions options = new MarkerOptions();
+//@        com.amap.api.maps.model.BitmapDescriptor des = com.amap.api.maps.model.BitmapDescriptorFactory.
+//@                fromResource(R.mipmap.navi_map_gps_locked);
+//@        com.amap.api.maps.model.MarkerOptions options = new com.amap.api.maps.model.MarkerOptions();
 //@        options.icon(des);
 //@        options.anchor(0.5f, 0.5f);
 //@        options.position(latlng);

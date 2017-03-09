@@ -3,15 +3,18 @@ package com.geely.dilan.maphandle;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.TextView;
 
 import com.geely.dilan.maphandle.map.bean.LatLng;
 import com.geely.dilan.maphandle.map.common.MapHelper;
 import com.geely.dilan.maphandle.map.common.MapView;
+import com.geely.dilan.maphandle.map.utils.MapUtils;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapHelper.MapLocationListenner {
 
     private MapHelper mapHelper;
+    private TextView tv_content;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mapHelper = new MapHelper(this, mMapView.getMap());
         mapHelper.onCreate(savedInstanceState, this);
 
+        tv_content = (TextView) findViewById(R.id.tv_content);
         findViewById(R.id.btn_test).setOnClickListener(this);
         findViewById(R.id.btn_zoomin).setOnClickListener(this);
         findViewById(R.id.btn_zoomout).setOnClickListener(this);
@@ -56,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.btn_test:
                 mapHelper.animateMap(new LatLng(39.983456, 116.3154950), 18);
+                tv_content.setText("距离：" + MapUtils.getDistance(new LatLng(39.926516, 116.389366),
+                        new LatLng(39.924870, 116.403270)) + "m");
                 break;
 
             case R.id.btn_zoomin:
