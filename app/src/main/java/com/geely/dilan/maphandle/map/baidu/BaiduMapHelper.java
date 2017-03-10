@@ -2,30 +2,53 @@ package com.geely.dilan.maphandle.map.baidu;
 
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.baidu.mapapi.SDKInitializer;
+import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.MapStatus;
+import com.baidu.mapapi.map.MapStatusUpdateFactory;
+import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.UiSettings;
+import com.baidu.mapapi.model.LatLng;
 import com.geely.dilan.maphandle.R;
-import com.geely.dilan.maphandle.map.bean.LatLng;
-import com.geely.dilan.maphandle.map.common.MapHelper;
+import com.geely.dilan.maphandle.map.common.IMapService;
+import com.geely.dilan.maphandle.map.common.MapLocationListener;
+import com.geely.dilan.maphandle.map.common.MyOrientationListener;
+import com.geely.dilan.maphandle.map.utils.SensorEventHelper;
 
 /**
  * Created by XinKai.Tong on 2017/3/1.
  */
-
-public class BaiduMapHelper {
-
-    //#if MAP_TYPE == 1
+//#if MAP_TYPE == 1
+public class BaiduMapHelper implements IMapService<BaiduMap, LatLng, BDLocation> {
 
     // 定位相关
-    private com.baidu.location.LocationClient mLocClient = null;
-    private com.baidu.mapapi.map.MapView mMapView = null;
-    private com.baidu.mapapi.map.BaiduMap mBaiduMap = null;
+    private LocationClient mLocClient = null;
+    private MapView mMapView = null;
+    private BaiduMap mBaiduMap = null;
     private boolean isFirstLoc; // 是否首次定位
     private Context context;
-    private MapHelper.MyOrientationListener myOrientationListener;
+    private SensorEventHelper mSensorHelper;
 
-    public BaiduMapHelper(@NonNull Context context, @NonNull com.baidu.mapapi.map.MapView mapView) {
+    /**
+     * 建议该方法放在Application的初始化方法中
+     *
+     * @param context
+     */
+    public static void init(Context context) {
+        SDKInitializer.initialize(context);
+    }
+
+    public BaiduMapHelper(@NonNull Context context, @NonNull MapView mapView) {
         this.context = context;
         mMapView = mapView;
         mBaiduMap = mMapView.getMap();
@@ -33,7 +56,7 @@ public class BaiduMapHelper {
     }
 
     private void initMapSet() {
-        com.baidu.mapapi.map.UiSettings uiSettings = mBaiduMap.getUiSettings();
+        UiSettings uiSettings = mBaiduMap.getUiSettings();
         uiSettings.setOverlookingGesturesEnabled(false);
         uiSettings.setRotateGesturesEnabled(false);
         uiSettings.setScrollGesturesEnabled(true);
@@ -42,29 +65,31 @@ public class BaiduMapHelper {
 //        mBaiduMap.setMaxAndMinZoomLevel(21, 3);
     }
 
-    public com.baidu.mapapi.map.BaiduMap getBaiduMap() {
+    @Override
+    public BaiduMap getMap() {
         return mBaiduMap;
     }
 
-    public void onCreate(final MapHelper.MapLocationListenner listenner) {
-        if (listenner != null) {
+    @Override
+    public void onCreate(Bundle savedInstanceState, final MapLocationListener<BDLocation> mapLocationListener) {
+        if (mapLocationListener != null) {
             isFirstLoc = true;
             // 定位初始化
-            mLocClient = new com.baidu.location.LocationClient(context);
-            mLocClient.registerLocationListener(new com.baidu.location.BDLocationListener() {
+            mLocClient = new LocationClient(context);
+            mLocClient.registerLocationListener(new BDLocationListener() {
                 @Override
-                public void onReceiveLocation(com.baidu.location.BDLocation bdLocation) {
+                public void onReceiveLocation(BDLocation bdLocation) {
                     // mMapView 销毁后不在处理新接收的位置
                     if (bdLocation == null || mMapView == null) {
                         return;
                     }
-                    mBaiduMap.setMyLocationData(new com.baidu.mapapi.map.MyLocationData.Builder()
+                    mBaiduMap.setMyLocationData(new MyLocationData.Builder()
                             .latitude(bdLocation.getLatitude())
                             .longitude(bdLocation.getLongitude()).build());
-                    listenner.onLocationSuccess(bdLocation);
+                    mapLocationListener.onLocationSuccess(bdLocation);
                     if (isFirstLoc) {
                         isFirstLoc = false;
-                        listenner.onFirstSuccess(bdLocation);
+                        mapLocationListener.onFirstSuccess(bdLocation);
                     }
                 }
 
@@ -74,7 +99,20 @@ public class BaiduMapHelper {
                 }
             });
 
-            myOrientationListener = new MapHelper.MyOrientationListener() {
+            // 开启定位图层
+            mBaiduMap.setMyLocationEnabled(true);
+
+            mBaiduMap.setMyLocationConfigeration(new MyLocationConfiguration(
+                    MyLocationConfiguration.LocationMode.NORMAL, true,
+                    BitmapDescriptorFactory.fromResource(R.mipmap.navi_map_gps_locked)));
+
+            LocationClientOption option = new LocationClientOption();
+            option.setOpenGps(true); // 打开gps
+            option.setCoorType("bd09ll"); // 设置坐标类型
+            option.setScanSpan(1000);
+            mLocClient.setLocOption(option);
+
+            mSensorHelper = new SensorEventHelper(context, new MyOrientationListener() {
                 @Override
                 public void onOrientationChanged(float x) {
                     MyLocationData locData = mBaiduMap.getLocationData();
@@ -85,102 +123,73 @@ public class BaiduMapHelper {
                                 .longitude(locData.longitude).build());
                     }
                 }
-            };
-
-            // 开启定位图层
-            mBaiduMap.setMyLocationEnabled(true);
-
-            mBaiduMap.setMyLocationConfigeration(new com.baidu.mapapi.map.MyLocationConfiguration(
-                    com.baidu.mapapi.map.MyLocationConfiguration.LocationMode.NORMAL, true,
-                    com.baidu.mapapi.map.BitmapDescriptorFactory.fromResource(R.mipmap.navi_map_gps_locked)));
-
-            com.baidu.location.LocationClientOption option = new com.baidu.location.LocationClientOption();
-            option.setOpenGps(true); // 打开gps
-            option.setCoorType("bd09ll"); // 设置坐标类型
-            option.setScanSpan(1000);
-            mLocClient.setLocOption(option);
+            });
         }
     }
 
+    @Override
     public void onResume() {
         mMapView.onResume();
         if (mLocClient != null) {
             mLocClient.start();
         }
+
+        if (mSensorHelper != null) {
+            mSensorHelper.registerSensorListener();
+        }
     }
 
+    @Override
     public void onPause() {
         mMapView.onPause();
         if (mLocClient != null) {
             mLocClient.stop();
         }
+
+        if (mSensorHelper != null) {
+            mSensorHelper.unRegisterSensorListener();
+        }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
+    }
+
+    @Override
     public void onDestroy() {
         if (mLocClient != null) {
             // 退出时销毁定位
             mLocClient.stop();
-            mLocClient = null;
         }
+        mLocClient = null;
+
+        if (mSensorHelper != null) {
+            mSensorHelper.unRegisterSensorListener();
+        }
+        mSensorHelper = null;
+
         // 关闭定位图层
         mBaiduMap.setMyLocationEnabled(false);
         mMapView.onDestroy();
         mMapView = null;
     }
 
-    public void animateMap(com.baidu.mapapi.model.LatLng target, float zoom) {
-        mBaiduMap.animateMapStatus(com.baidu.mapapi.map.MapStatusUpdateFactory.newMapStatus(
-                new com.baidu.mapapi.map.MapStatus.Builder().target(target).zoom(zoom).build()));
+    @Override
+    public void animateMap(LatLng target, float zoom) {
+        mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(
+                new MapStatus.Builder().target(target).zoom(zoom).build()));
     }
 
+    @Override
     public void zoomIn() {
-        mBaiduMap.animateMapStatus(com.baidu.mapapi.map.MapStatusUpdateFactory.zoomIn());
+        mBaiduMap.animateMapStatus(MapStatusUpdateFactory.zoomIn());
     }
 
+    @Override
     public void zoomOut() {
-        mBaiduMap.animateMapStatus(com.baidu.mapapi.map.MapStatusUpdateFactory.zoomOut());
+        mBaiduMap.animateMapStatus(MapStatusUpdateFactory.zoomOut());
     }
 
-    public void setMapLoadedListener(final MapHelper.MapLoadedListener listener) {
-        mBaiduMap.setOnMapLoadedCallback(new com.baidu.mapapi.map.BaiduMap.OnMapLoadedCallback() {
-            @Override
-            public void onMapLoaded() {
-                listener.onMapLoaded();
-            }
-        });
-    }
-
-    public void setMapClickListener(final MapHelper.MapClickListener listener) {
-        mBaiduMap.setOnMapClickListener(new com.baidu.mapapi.map.BaiduMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(com.baidu.mapapi.model.LatLng latLng) {
-                if (latLng != null) {
-                    listener.onMapClick(new LatLng(latLng.latitude, latLng.longitude));
-                }
-            }
-
-            @Override
-            public boolean onMapPoiClick(com.baidu.mapapi.map.MapPoi mapPoi) {
-                return false;
-            }
-        });
-    }
-
-    public void setMarkerClickListener(final MapHelper.MarkerClickListener listener) {
-        mBaiduMap.setOnMarkerClickListener(new com.baidu.mapapi.map.BaiduMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(com.baidu.mapapi.map.Marker marker) {
-                if (marker != null) {
-                    listener.onMarkerClick(marker);
-                }
-                return false;
-            }
-        });
-    }
-
-    public MapHelper.MyOrientationListener getMyOrientationListener() {
-        return myOrientationListener;
-    }
-
-    //#endif
 }
+//#endif

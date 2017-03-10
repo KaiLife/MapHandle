@@ -5,15 +5,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
-import com.geely.dilan.maphandle.map.bean.LatLng;
-import com.geely.dilan.maphandle.map.common.MapHelper;
+import com.baidu.location.BDLocation;
+import com.baidu.mapapi.model.LatLng;
+import com.geely.dilan.maphandle.map.baidu.BaiduMapHelper;
+import com.geely.dilan.maphandle.map.baidu.BaiduMapUtils;
+import com.geely.dilan.maphandle.map.common.MapLocationListener;
 import com.geely.dilan.maphandle.map.common.MapView;
-import com.geely.dilan.maphandle.map.utils.MapUtils;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapHelper.MapLocationListenner {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapLocationListener<BDLocation> {
 
-    private MapHelper mapHelper;
+    //#if MAP_TYPE == 1
+    private BaiduMapHelper mapHelper;
+    //#endif
+
+    //#if MAP_TYPE == 0
+//@    private GaodeMapHelper mapHelper;
+    //#endif
+
     private TextView tv_content;
 
     @Override
@@ -22,7 +31,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         MapView mMapView = (MapView) findViewById(R.id.map);
-        mapHelper = new MapHelper(this, mMapView.getMap());
+
+        //#if MAP_TYPE == 1
+        mapHelper = new BaiduMapHelper(this, (com.baidu.mapapi.map.MapView) mMapView.getMap());
+        //#endif
+
+        //#if MAP_TYPE == 0
+//@        mapHelper = new GaodeMapHelper(this, (com.amap.api.maps.MapView) mMapView.getMap());
+        //#endif
+
         mapHelper.onCreate(savedInstanceState, this);
 
         tv_content = (TextView) findViewById(R.id.tv_content);
@@ -60,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.btn_test:
                 mapHelper.animateMap(new LatLng(39.983456, 116.3154950), 18);
-                tv_content.setText("距离：" + MapUtils.getDistance(new LatLng(39.926516, 116.389366),
+                tv_content.setText("距离：" + BaiduMapUtils.getDistance(new LatLng(39.926516, 116.389366),
                         new LatLng(39.924870, 116.403270)) + "m");
                 break;
 
@@ -78,24 +95,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onFirstSuccess(Object location) {
+    public void onFirstSuccess(BDLocation location) {
         if (location == null) {
             return;
         }
 
-        if (location instanceof com.baidu.location.BDLocation) {
-            com.baidu.location.BDLocation bdLocation = (com.baidu.location.BDLocation) location;
-            mapHelper.animateMap(new LatLng(bdLocation.getLatitude(), bdLocation.getLongitude()), 18);
-        }
-
-        if (location instanceof com.amap.api.location.AMapLocation) {
-            com.amap.api.location.AMapLocation aMapLocation = (com.amap.api.location.AMapLocation) location;
-            mapHelper.animateMap(new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()), 18);
-        }
+        mapHelper.animateMap(new LatLng(location.getLatitude(), location.getLongitude()), 18);
     }
 
     @Override
-    public void onLocationSuccess(Object location) {
+    public void onLocationSuccess(BDLocation location) {
 
     }
 }

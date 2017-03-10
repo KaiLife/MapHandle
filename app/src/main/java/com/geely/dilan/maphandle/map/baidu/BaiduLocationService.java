@@ -1,67 +1,67 @@
 package com.geely.dilan.maphandle.map.baidu;
 
+import android.content.Context;
+
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.geely.dilan.maphandle.map.common.ILocationService;
+
 /**
  * Created by XinKai.Tong on 2017/2/28.
  */
+//#if MAP_TYPE == 1
+public class BaiduLocationService implements ILocationService<BDLocationListener, LocationClientOption> {
 
-public class BaiduLocationService {
-
-    //#if MAP_TYPE == 1
-
-    private com.baidu.location.LocationClient client = null;
-    private com.baidu.location.LocationClientOption mOption, DIYoption;
+    private LocationClient client = null;
+    private LocationClientOption mOption, DIYoption;
     private Object objLock = new Object();
+    private BDLocationListener bdLocationListener;
 
-    public BaiduLocationService(android.content.Context locationContext) {
+    public BaiduLocationService(Context context) {
         synchronized (objLock) {
             if (client == null) {
-                client = new com.baidu.location.LocationClient(locationContext);
+                client = new LocationClient(context);
                 client.setLocOption(getDefaultLocationClientOption());
             }
         }
     }
 
-    public boolean registerListener(com.baidu.location.BDLocationListener listener) {
-        boolean isSuccess = false;
+    @Override
+    public void registerListener(BDLocationListener listener) {
         if (listener != null && client != null) {
             client.registerLocationListener(listener);
-            isSuccess = true;
-        }
-        return isSuccess;
-    }
-
-    public void unregisterListener(com.baidu.location.BDLocationListener listener) {
-        if (listener != null && client != null) {
-            client.unRegisterLocationListener(listener);
+            this.bdLocationListener = listener;
         }
     }
 
-    /***
-     * @param option
-     * @return isSuccessSetOption
-     */
-    public boolean setLocationOption(com.baidu.location.LocationClientOption option) {
-        boolean isSuccess = false;
+    @Override
+    public void unregisterListener() {
+        if (bdLocationListener != null && client != null) {
+            client.unRegisterLocationListener(bdLocationListener);
+        }
+    }
+
+    @Override
+    public void setLocationOption(LocationClientOption option) {
         if (option != null && client != null) {
             if (client.isStarted())
                 client.stop();
             DIYoption = option;
             client.setLocOption(option);
         }
-        return isSuccess;
     }
 
-    public com.baidu.location.LocationClientOption getOption() {
+    @Override
+    public LocationClientOption getOption() {
         return DIYoption;
     }
 
-    /***
-     * @return DefaultLocationClientOption
-     */
-    public com.baidu.location.LocationClientOption getDefaultLocationClientOption() {
+    @Override
+    public LocationClientOption getDefaultLocationClientOption() {
         if (mOption == null) {
-            mOption = new com.baidu.location.LocationClientOption();
-            mOption.setLocationMode(com.baidu.location.LocationClientOption.LocationMode.Hight_Accuracy);//可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
+            mOption = new LocationClientOption();
+            mOption.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);//可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
             mOption.setCoorType("bd09ll");//可选，默认gcj02，设置返回的定位结果坐标系，如果配合百度地图使用，建议设置为bd09ll;
             mOption.setScanSpan(3000);//可选，默认0，即仅定位一次，设置发起定位请求的间隔需要大于等于1000ms才是有效的
             mOption.setIsNeedAddress(true);//可选，设置是否需要地址信息，默认不需要
@@ -77,6 +77,7 @@ public class BaiduLocationService {
         return mOption;
     }
 
+    @Override
     public void start() {
         synchronized (objLock) {
             if (client != null && !client.isStarted()) {
@@ -85,6 +86,7 @@ public class BaiduLocationService {
         }
     }
 
+    @Override
     public void stop() {
         synchronized (objLock) {
             if (client != null && client.isStarted()) {
@@ -93,6 +95,7 @@ public class BaiduLocationService {
         }
     }
 
+    @Override
     public void destroyLocation() {
         if (client != null) {
             client = null;
@@ -101,5 +104,5 @@ public class BaiduLocationService {
         }
     }
 
-    //#endif
 }
+//#endif

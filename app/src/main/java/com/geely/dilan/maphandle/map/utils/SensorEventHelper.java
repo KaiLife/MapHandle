@@ -5,18 +5,19 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.support.annotation.NonNull;
 import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
-import com.geely.dilan.maphandle.map.common.MapHelper;
+import com.geely.dilan.maphandle.map.common.MyOrientationListener;
 
 public class SensorEventHelper implements SensorEventListener {
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
+    private MyOrientationListener orientationListener;
     private Context mContext;
-    private MapHelper.MyOrientationListener orientationListener;
 
     private long lastTime = 0;
     private final int TIME_SENSOR = 100;
@@ -24,7 +25,7 @@ public class SensorEventHelper implements SensorEventListener {
 
     private float lastX;
 
-    public SensorEventHelper(Context context, MapHelper.MyOrientationListener orientationListener) {
+    public SensorEventHelper(@NonNull Context context, MyOrientationListener orientationListener) {
         mContext = context;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);

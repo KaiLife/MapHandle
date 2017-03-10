@@ -5,30 +5,45 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
-
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
+import com.amap.api.maps.AMap;
+import com.amap.api.maps.CameraUpdateFactory;
+import com.amap.api.maps.LocationSource;
+import com.amap.api.maps.MapView;
+import com.amap.api.maps.UiSettings;
+import com.amap.api.maps.model.BitmapDescriptor;
+import com.amap.api.maps.model.BitmapDescriptorFactory;
+import com.amap.api.maps.model.CameraPosition;
+import com.amap.api.maps.model.LatLng;
+import com.amap.api.maps.model.Marker;
+import com.amap.api.maps.model.MarkerOptions;
 import com.geely.dilan.maphandle.R;
-import com.geely.dilan.maphandle.map.common.MapHelper;
+import com.geely.dilan.maphandle.map.common.IMapService;
+import com.geely.dilan.maphandle.map.common.MapLocationListener;
+import com.geely.dilan.maphandle.map.common.MyOrientationListener;
+import com.geely.dilan.maphandle.map.utils.SensorEventHelper;
 
 /**
  * Created by XinKai.Tong on 2017/3/1.
  */
-
-public class GaodeMapHelper {
-
-    //#if MAP_TYPE == 0
+//#if MAP_TYPE == 0
+//@public class GaodeMapHelper implements IMapService<AMap, LatLng, AMapLocation> {
 //@
 //@    private MyLocationSource myLocationSource = null;
 //@    private MyAMapLocationListener myAMapLocationListener = null;
-//@    private com.amap.api.location.AMapLocationClient mlocationClient;
-//@    private MapHelper.MapLocationListenner mapLocationListenner;
-//@    private com.amap.api.maps.MapView mMapView = null;
-//@    private com.amap.api.maps.AMap aMap = null;
+//@    private AMapLocationClient mlocationClient;
+//@    private MapLocationListener<AMapLocation> mapLocationListenner;
+//@    private MapView mMapView = null;
+//@    private AMap aMap = null;
 //@    private boolean isFirstLoc; // 是否首次定位
 //@    private Context context;
-//@    private MapHelper.MyOrientationListener myOrientationListener;
-//@    private com.amap.api.maps.model.Marker mLocMarker;
+//@    private Marker mLocMarker;
+//@    private SensorEventHelper mSensorHelper;
 //@
-//@    public GaodeMapHelper(@NonNull Context context, @NonNull com.amap.api.maps.MapView mapView) {
+//@    public GaodeMapHelper(@NonNull Context context, @NonNull MapView mapView) {
 //@        this.context = context;
 //@        mMapView = mapView;
 //@        aMap = mMapView.getMap();
@@ -37,7 +52,7 @@ public class GaodeMapHelper {
 //@    }
 //@
 //@    private void initMapSet() {
-//@        com.amap.api.maps.UiSettings uiSettings = aMap.getUiSettings();
+//@        UiSettings uiSettings = aMap.getUiSettings();
 //@        uiSettings.setMyLocationButtonEnabled(false);
 //@        uiSettings.setRotateGesturesEnabled(false);
 //@        uiSettings.setScrollGesturesEnabled(true);
@@ -50,27 +65,29 @@ public class GaodeMapHelper {
 //@//        aMap.setMinZoomLevel(3);
 //@    }
 //@
-//@    public com.amap.api.maps.AMap getAMap() {
+//@    @Override
+//@    public AMap getMap() {
 //@        return aMap;
 //@    }
 //@
-//@    public void onCreate(Bundle savedInstanceState, final MapHelper.MapLocationListenner listenner) {
+//@    @Override
+//@    public void onCreate(Bundle savedInstanceState, MapLocationListener<AMapLocation> mapLocationListener) {
 //@        mMapView.onCreate(savedInstanceState);
-//@        if (listenner != null) {
+//@        if (mapLocationListener != null) {
 //@            isFirstLoc = true;
-//@            mapLocationListenner = listenner;
+//@            mapLocationListenner = mapLocationListener;
 //@            myLocationSource = new MyLocationSource();
 //@            myAMapLocationListener = new MyAMapLocationListener();
 //@            aMap.setLocationSource(myLocationSource);// 设置定位监听
-//@            myOrientationListener = new MapHelper.MyOrientationListener() {
+//@            initMapLoc();
+//@            mSensorHelper = new SensorEventHelper(context, new MyOrientationListener() {
 //@                @Override
 //@                public void onOrientationChanged(float x) {
 //@                    if (mLocMarker != null) {
 //@                        mLocMarker.setRotateAngle(x);
 //@                    }
 //@                }
-//@            };
-//@            initMapLoc();
+//@            });
 //@        }
 //@    }
 //@
@@ -78,86 +95,70 @@ public class GaodeMapHelper {
 //@        // 设置为true表示显示定位层并可触发定位，false表示隐藏定位层并不可触发定位，默认是false
 //@        aMap.setMyLocationEnabled(true);
 //@        // 设置定位的类型为定位模式 ，可以由定位、跟随或地图根据面向方向旋转几种
-//@        aMap.setMyLocationType(com.amap.api.maps.AMap.LOCATION_TYPE_LOCATE);
+//@        aMap.setMyLocationType(AMap.LOCATION_TYPE_LOCATE);
 //@    }
 //@
+//@    @Override
 //@    public void onResume() {
 //@        mMapView.onResume();
+//@        if (mSensorHelper != null) {
+//@            mSensorHelper.registerSensorListener();
+//@        }
 //@    }
 //@
+//@    @Override
 //@    public void onPause() {
 //@        mMapView.onPause();
 //@        stopLocation();
+//@        if (mSensorHelper != null) {
+//@            mSensorHelper.unRegisterSensorListener();
+//@        }
 //@    }
 //@
-//@    public void onSaveInstanceState(android.os.Bundle outState) {
+//@    @Override
+//@    public void onSaveInstanceState(Bundle outState) {
 //@        mMapView.onSaveInstanceState(outState);
 //@    }
 //@
+//@    @Override
 //@    public void onDestroy() {
 //@        mMapView.onDestroy();
 //@        stopLocation();
+//@        if (mSensorHelper != null) {
+//@            mSensorHelper.unRegisterSensorListener();
+//@        }
+//@        mSensorHelper = null;
 //@    }
 //@
-//@    public void animateMap(com.amap.api.maps.model.LatLng target, float zoom) {
-//@        aMap.animateCamera(com.amap.api.maps.CameraUpdateFactory.newCameraPosition(
-//@                new com.amap.api.maps.model.CameraPosition(target, zoom, 0, 0)));
+//@    @Override
+//@    public void animateMap(LatLng target, float zoom) {
+//@        aMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(target, zoom, 0, 0)));
 //@    }
 //@
+//@    @Override
 //@    public void zoomIn() {
-//@        aMap.animateCamera(com.amap.api.maps.CameraUpdateFactory.zoomIn());
+//@        aMap.animateCamera(CameraUpdateFactory.zoomIn());
 //@    }
 //@
+//@    @Override
 //@    public void zoomOut() {
-//@        aMap.animateCamera(com.amap.api.maps.CameraUpdateFactory.zoomOut());
+//@        aMap.animateCamera(CameraUpdateFactory.zoomOut());
 //@    }
 //@
-//@    public void setMapLoadedListener(final MapHelper.MapLoadedListener listener) {
-//@        aMap.setOnMapLoadedListener(new com.amap.api.maps.AMap.OnMapLoadedListener() {
-//@            @Override
-//@            public void onMapLoaded() {
-//@                listener.onMapLoaded();
-//@            }
-//@        });
-//@    }
-//@
-//@    public void setMapClickListener(final MapHelper.MapClickListener listener) {
-//@        aMap.setOnMapClickListener(new com.amap.api.maps.AMap.OnMapClickListener() {
-//@            @Override
-//@            public void onMapClick(com.amap.api.maps.model.LatLng latLng) {
-//@                if (latLng != null) {
-//@                    listener.onMapClick(new com.geely.dilan.maphandle.map.bean.LatLng(latLng.latitude, latLng.longitude));
-//@                }
-//@            }
-//@        });
-//@    }
-//@
-//@    public void setMarkerClickListener(final MapHelper.MarkerClickListener listener) {
-//@        aMap.setOnMarkerClickListener(new com.amap.api.maps.AMap.OnMarkerClickListener() {
-//@            @Override
-//@            public boolean onMarkerClick(com.amap.api.maps.model.Marker marker) {
-//@                if (marker != null) {
-//@                    listener.onMarkerClick(marker);
-//@                }
-//@                return false;
-//@            }
-//@        });
-//@    }
-//@
-//@    private class MyLocationSource implements com.amap.api.maps.LocationSource {
+//@    private class MyLocationSource implements LocationSource {
 //@
 //@        /**
 //@         * 激活定位
 //@         */
 //@        @Override
-//@        public void activate(com.amap.api.maps.LocationSource.OnLocationChangedListener listener) {
+//@        public void activate(LocationSource.OnLocationChangedListener listener) {
 //@            if (mlocationClient == null) {
-//@                mlocationClient = new com.amap.api.location.AMapLocationClient(context);
-//@                com.amap.api.location.AMapLocationClientOption mLocationOption = new com.amap.api.location.AMapLocationClientOption();
+//@                mlocationClient = new AMapLocationClient(context);
+//@                AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
 //@                //设置定位监听
 //@                mlocationClient.setLocationListener(myAMapLocationListener);
 //@                //设置为高精度定位模式
-//@                mLocationOption.setLocationMode(com.amap.api.location.AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+//@                mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
 //@                //设置定位参数
 //@                mlocationClient.setLocationOption(mLocationOption);
 //@                // 此方法为每隔固定时间会发起一次定位请求，为了减少电量消耗或网络流量消耗，
@@ -185,20 +186,20 @@ public class GaodeMapHelper {
 //@        mlocationClient = null;
 //@    }
 //@
-//@    private class MyAMapLocationListener implements com.amap.api.location.AMapLocationListener {
+//@    private class MyAMapLocationListener implements AMapLocationListener {
 //@
 //@        /**
 //@         * 定位成功后回调函数
 //@         */
 //@        @Override
-//@        public void onLocationChanged(com.amap.api.location.AMapLocation amapLocation) {
+//@        public void onLocationChanged(AMapLocation amapLocation) {
 //@            if (amapLocation != null) {
 //@                if (amapLocation.getErrorCode() == 0) {
 //@                    if (mapLocationListenner != null) {
 //@                        mapLocationListenner.onLocationSuccess(amapLocation);
 //@                        if (isFirstLoc) {
 //@                            isFirstLoc = false;
-//@                            addLocMarker(new com.amap.api.maps.model.LatLng(amapLocation.getLatitude(), amapLocation.getLongitude()));
+//@                            addLocMarker(new LatLng(amapLocation.getLatitude(), amapLocation.getLongitude()));
 //@                            mapLocationListenner.onFirstSuccess(amapLocation);
 //@                        }
 //@                    }
@@ -207,25 +208,19 @@ public class GaodeMapHelper {
 //@        }
 //@    }
 //@
-//@    public MapHelper.MyOrientationListener getMyOrientationListener() {
-//@        return myOrientationListener;
-//@    }
-//@
 //@    /**
 //@     * 添加定位Marker
 //@     */
-//@    private void addLocMarker(com.amap.api.maps.model.LatLng latlng) {
+//@    private void addLocMarker(LatLng latlng) {
 //@        if (mLocMarker != null) {
 //@            return;
 //@        }
-//@        com.amap.api.maps.model.BitmapDescriptor des = com.amap.api.maps.model.BitmapDescriptorFactory.
-//@                fromResource(R.mipmap.navi_map_gps_locked);
-//@        com.amap.api.maps.model.MarkerOptions options = new com.amap.api.maps.model.MarkerOptions();
+//@        BitmapDescriptor des = BitmapDescriptorFactory.fromResource(R.mipmap.navi_map_gps_locked);
+//@        MarkerOptions options = new MarkerOptions();
 //@        options.icon(des);
 //@        options.anchor(0.5f, 0.5f);
 //@        options.position(latlng);
 //@        mLocMarker = aMap.addMarker(options);
 //@    }
-//@
-    //#endif
-}
+//@}
+//#endif
